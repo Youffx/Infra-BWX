@@ -20,4 +20,5 @@ out/
 *.log
 *.hprof
 google-services.json
-# keystore is intentionally committed for consistent signing
+*.jks
+*.keystore

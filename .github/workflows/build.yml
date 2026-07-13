@@ -21,6 +21,21 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Decode keystore (from secret) or generate fallback
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > infra-bwx-keystore.jks
+            echo "Keystore decoded from secret"
+          elif [ ! -f infra-bwx-keystore.jks ]; then
+            keytool -genkey -v -keystore infra-bwx-keystore.jks \
+              -alias infra-bwx -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass infrabwx -keypass infrabwx \
+              -dname "CN=InfraBWX, OU=CI, O=InfraBWX, L=Banyuwangi, ST=Jawa Timur, C=ID"
+            echo "Fallback keystore generated (updates may conflict)"
+          fi
+
       - name: Setup ccache
         run: |
           sudo apt-get update -q
@@ -70,6 +85,21 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+
+      - name: Decode keystore (from secret) or generate fallback
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > infra-bwx-keystore.jks
+            echo "Keystore decoded from secret"
+          elif [ ! -f infra-bwx-keystore.jks ]; then
+            keytool -genkey -v -keystore infra-bwx-keystore.jks \
+              -alias infra-bwx -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass infrabwx -keypass infrabwx \
+              -dname "CN=InfraBWX, OU=CI, O=InfraBWX, L=Banyuwangi, ST=Jawa Timur, C=ID"
+            echo "Fallback keystore generated (updates may conflict)"
+          fi
 
       - name: Setup ccache
         run: |
