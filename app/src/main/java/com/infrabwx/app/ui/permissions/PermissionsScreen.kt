@@ -1,7 +1,6 @@
 package com.infrabwx.app.ui.permissions
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,19 +43,21 @@ fun PermissionsScreen(onPermissionsGranted: () -> Unit, onDenied: () -> Unit) {
     val fineLocationPermission = Manifest.permission.ACCESS_FINE_LOCATION
     val coarseLocationPermission = Manifest.permission.ACCESS_COARSE_LOCATION
 
+    var pendingGrant by remember { mutableStateOf(false) }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (allGranted) {
-            onPermissionsGranted()
+            pendingGrant = true
         } else {
             onDenied()
         }
     }
 
     LaunchedEffect(Unit) {
-        delay(1200L)
+        delay(1500L)
 
         val cameraGranted = ContextCompat.checkSelfPermission(context, cameraPermission) ==
                 PackageManager.PERMISSION_GRANTED
@@ -60,11 +65,19 @@ fun PermissionsScreen(onPermissionsGranted: () -> Unit, onDenied: () -> Unit) {
                 PackageManager.PERMISSION_GRANTED
 
         if (cameraGranted && locationGranted) {
+            delay(1500L)
             onPermissionsGranted()
         } else {
             launcher.launch(
                 arrayOf(cameraPermission, fineLocationPermission, coarseLocationPermission)
             )
+        }
+    }
+
+    LaunchedEffect(pendingGrant) {
+        if (pendingGrant) {
+            delay(2000L)
+            onPermissionsGranted()
         }
     }
 
