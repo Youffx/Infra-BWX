@@ -1,5 +1,6 @@
 package com.infrabwx.app.data.remote
 
+import com.infrabwx.app.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -8,10 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // Update this with your actual deployed Google Apps Script Web App URL
-    // Example: https://script.google.com/macros/s/AKfycbxxxxxxxxxxxx/exec
-    private const val APPS_SCRIPT_DEPLOY_URL =
-        "https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/"
+    private val APPS_SCRIPT_DEPLOY_URL = BuildConfig.APPS_SCRIPT_URL
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

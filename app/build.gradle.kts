@@ -1,7 +1,17 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
+}
+val appScriptUrl: String = localProperties.getProperty("APPS_SCRIPT_URL")
+    ?: System.getenv("APPS_SCRIPT_URL")
+    ?: ""
 
 android {
     namespace = "com.infrabwx.app"
@@ -22,6 +32,7 @@ android {
         targetSdk = 34
         versionCode = 2
         versionName = "1.1.0"
+        buildConfigField("String", "APPS_SCRIPT_URL", "\"${appScriptUrl}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
@@ -51,6 +62,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()

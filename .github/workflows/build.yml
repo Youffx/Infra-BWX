@@ -10,6 +10,7 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false
   STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
   KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  APPS_SCRIPT_URL: ${{ secrets.APPS_SCRIPT_URL }}
 
 jobs:
   build:
