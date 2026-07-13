@@ -117,21 +117,21 @@ fun MainScreen(
                     onDismissRequest = { showMenu = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Ketentuan Hukum") },
+                        text = { Text("Ketentuan Hukum", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
                             showMenu = false
                             showTermsDialog = true
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Kredit") },
+                        text = { Text("Developer", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
                             showMenu = false
                             showCreditsDialog = true
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("Mode Tampilan") },
+                        text = { Text("Mode Tampilan", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
                             showMenu = false
                             selectedTheme = themeMode
@@ -445,7 +445,7 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
         },
         title = {
             Text(
-                text = "Kredit",
+                text = "Developer",
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
