@@ -93,13 +93,7 @@ fun NavGraph(
                     navController.navigate(Screen.Category.createRoute(categoryId))
                 },
                 themeMode = themeMode,
-                preferences = preferences,
-                onRestart = {
-                    val ctx = navController.context
-                    if (ctx is android.app.Activity) {
-                        ctx.finishAffinity()
-                    }
-                }
+                preferences = preferences
             )
         }
 

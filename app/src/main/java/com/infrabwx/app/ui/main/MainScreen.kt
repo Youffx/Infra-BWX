@@ -31,8 +31,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -65,8 +64,6 @@ import com.infrabwx.app.data.model.CategoryProvider
 import com.infrabwx.app.data.model.ReportCategory
 import com.infrabwx.app.data.preferences.AppPreferences
 import com.infrabwx.app.ui.theme.PrimaryBlue
-import com.infrabwx.app.ui.theme.PrimaryGreen
-import com.infrabwx.app.ui.theme.TextSecondary
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,14 +85,12 @@ private val categoryMeta = mapOf(
 fun MainScreen(
     onCategoryClick: (String) -> Unit,
     themeMode: String,
-    preferences: AppPreferences,
-    onRestart: () -> Unit
+    preferences: AppPreferences
 ) {
     var showMenu by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
     var showCreditsDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
-    var showRestartDialog by remember { mutableStateOf(false) }
     var selectedTheme by remember { mutableStateOf(themeMode) }
 
     Column(
@@ -189,19 +184,8 @@ fun MainScreen(
                 CoroutineScope(Dispatchers.IO).launch {
                     preferences.setThemeMode(mode)
                 }
-                showRestartDialog = true
             },
             onDismiss = { showThemeDialog = false }
-        )
-    }
-
-    if (showRestartDialog) {
-        RestartDialog(
-            onApply = {
-                showRestartDialog = false
-                onRestart()
-            },
-            onDismiss = { showRestartDialog = false }
         )
     }
 }
@@ -305,7 +289,7 @@ private fun TermsDialog(onDismiss: () -> Unit) {
                     text = "Ketentuan Hukum",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A2E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -313,7 +297,7 @@ private fun TermsDialog(onDismiss: () -> Unit) {
                 Text(
                     text = "Undang-Undang dan Peraturan Terkait",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -367,7 +351,7 @@ private fun TermsDialog(onDismiss: () -> Unit) {
                     Text(
                         text = "Dengan menggunakan aplikasi ini, Anda turut berpartisipasi dalam pengawasan dan pelaporan infrastruktur sesuai dengan peraturan perundang-undangan yang berlaku.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF1A1A2E),
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
@@ -410,12 +394,12 @@ private fun LawDialogCard(
                         text = title,
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1A2E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -434,12 +418,12 @@ private fun LawDialogCard(
                             text = article,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF1A1A2E)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = desc,
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
@@ -463,7 +447,7 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
             Text(
                 text = "Kredit",
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A2E)
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
@@ -477,7 +461,7 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
                     text = "Telegram",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF1A1A2E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -513,7 +497,7 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
                 Text(
                     text = "Ketuk untuk membuka Telegram",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
                 )
             }
@@ -538,14 +522,14 @@ private fun ThemeModeDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Batal", color = TextSecondary)
+                Text("Batal", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
         },
         title = {
             Text(
                 text = "Mode Tampilan",
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A2E)
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
@@ -569,56 +553,10 @@ private fun ThemeModeDialog(
                         Text(
                             text = label,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = Color(0xFF1A1A2E)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
-            }
-        }
-    )
-}
-
-@Composable
-private fun RestartDialog(
-    onApply: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = onApply,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryBlue
-                )
-            ) {
-                Text(
-                    text = "Terapkan",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Nanti", color = TextSecondary)
-            }
-        },
-        title = {
-            Text(
-                text = "Mode Tampilan",
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A2E)
-            )
-        },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Mulai ulang aplikasi untuk menerapkan mode ini.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = Color(0xFF1A1A2E)
-                )
             }
         }
     )
