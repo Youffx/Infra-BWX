@@ -30,8 +30,8 @@ android {
         applicationId = "com.infrabwx.app"
         minSdk = 31
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
         buildConfigField("String", "APPS_SCRIPT_URL", "\"${appScriptUrl}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
