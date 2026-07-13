@@ -19,7 +19,5 @@ out/
 .navigation/
 *.log
 *.hprof
-*.keystore
 google-services.json
-*.jks
-*.keystore
+# keystore is intentionally committed for consistent signing
