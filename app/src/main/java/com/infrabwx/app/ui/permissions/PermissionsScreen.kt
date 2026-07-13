@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.infrabwx.app.ui.theme.DarkBlue
 import com.infrabwx.app.ui.theme.PrimaryBlue
+import kotlinx.coroutines.delay
 
 @Composable
 fun PermissionsScreen(onPermissionsGranted: () -> Unit, onDenied: () -> Unit) {
@@ -51,6 +52,8 @@ fun PermissionsScreen(onPermissionsGranted: () -> Unit, onDenied: () -> Unit) {
     }
 
     LaunchedEffect(Unit) {
+        delay(1200L)
+
         val cameraGranted = ContextCompat.checkSelfPermission(context, cameraPermission) ==
                 PackageManager.PERMISSION_GRANTED
         val locationGranted = ContextCompat.checkSelfPermission(context, fineLocationPermission) ==
