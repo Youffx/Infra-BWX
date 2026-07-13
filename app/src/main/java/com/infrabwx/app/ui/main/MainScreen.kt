@@ -1,5 +1,7 @@
 package com.infrabwx.app.ui.main
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,35 +18,58 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Gavel
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.infrabwx.app.data.model.CategoryProvider
 import com.infrabwx.app.data.model.ReportCategory
+import com.infrabwx.app.data.preferences.AppPreferences
 import com.infrabwx.app.ui.theme.PrimaryBlue
+import com.infrabwx.app.ui.theme.PrimaryGreen
 import com.infrabwx.app.ui.theme.TextSecondary
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private data class CategoryMeta(
     val icon: ImageVector,
@@ -62,8 +87,17 @@ private val categoryMeta = mapOf(
 @Composable
 fun MainScreen(
     onCategoryClick: (String) -> Unit,
-    onSettingsClick: () -> Unit
+    themeMode: String,
+    preferences: AppPreferences,
+    onRestart: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+    var showCreditsDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
+    var showRestartDialog by remember { mutableStateOf(false) }
+    var selectedTheme by remember { mutableStateOf(themeMode) }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -76,16 +110,43 @@ fun MainScreen(
                 )
             },
             actions = {
-                IconButton(onClick = onSettingsClick) {
+                IconButton(onClick = { showMenu = true }) {
                     Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "Pengaturan",
-                        tint = TextSecondary
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = "Menu",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Ketentuan Hukum") },
+                        onClick = {
+                            showMenu = false
+                            showTermsDialog = true
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Kredit") },
+                        onClick = {
+                            showMenu = false
+                            showCreditsDialog = true
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Mode Tampilan") },
+                        onClick = {
+                            showMenu = false
+                            selectedTheme = themeMode
+                            showThemeDialog = true
+                        }
                     )
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         )
 
@@ -94,7 +155,7 @@ fun MainScreen(
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
 
         LazyColumn(
@@ -110,6 +171,39 @@ fun MainScreen(
             }
         }
     }
+
+    if (showTermsDialog) {
+        TermsDialog(onDismiss = { showTermsDialog = false })
+    }
+
+    if (showCreditsDialog) {
+        CreditsDialog(onDismiss = { showCreditsDialog = false })
+    }
+
+    if (showThemeDialog) {
+        ThemeModeDialog(
+            currentMode = selectedTheme,
+            onSelect = { mode ->
+                selectedTheme = mode
+                showThemeDialog = false
+                CoroutineScope(Dispatchers.IO).launch {
+                    preferences.setThemeMode(mode)
+                }
+                showRestartDialog = true
+            },
+            onDismiss = { showThemeDialog = false }
+        )
+    }
+
+    if (showRestartDialog) {
+        RestartDialog(
+            onApply = {
+                showRestartDialog = false
+                onRestart()
+            },
+            onDismiss = { showRestartDialog = false }
+        )
+    }
 }
 
 @Composable
@@ -121,7 +215,7 @@ private fun CategoryCard(category: ReportCategory, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
@@ -160,7 +254,7 @@ private fun CategoryCard(category: ReportCategory, onClick: () -> Unit) {
                 Text(
                     text = meta.desc,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
 
@@ -169,8 +263,363 @@ private fun CategoryCard(category: ReportCategory, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = TextSecondary.copy(alpha = 0.5f)
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
         }
     }
+}
+
+@Composable
+private fun TermsDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Tutup", color = PrimaryBlue)
+            }
+        },
+        title = null,
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(PrimaryBlue.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Gavel,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = PrimaryBlue
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Ketentuan Hukum",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1A2E)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Undang-Undang dan Peraturan Terkait",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                LawDialogCard(
+                    number = "01",
+                    title = "UU No. 22 Tahun 2009",
+                    subtitle = "Lalu Lintas dan Angkutan Jalan",
+                    articles = listOf(
+                        "Pasal 24 ayat (1)" to "Pemerintah bertanggung jawab atas penyelenggaraan jalan yang berkeselamatan dan berwawasan lingkungan.",
+                        "Pasal 25" to "Setiap jalan untuk lalu lintas umum wajib dilengkapi rambu, marka, alat pemberi isyarat, dan penerangan jalan.",
+                        "Pasal 26" to "Pemeliharaan dan pengawasan jalan merupakan tanggung jawab pemerintah sesuai kewenangannya."
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LawDialogCard(
+                    number = "02",
+                    title = "PP No. 34 Tahun 2006",
+                    subtitle = "Tentang Jalan",
+                    articles = listOf(
+                        "Pasal 2" to "Jalan sebagai prasarana distribusi berperan penting dalam pengembangan wilayah.",
+                        "Pasal 90" to "Masyarakat dapat berperan serta dalam penyelenggaraan jalan, termasuk pengawasan.",
+                        "Pasal 91" to "Peran serta masyarakat dilakukan melalui penyampaian laporan kepada penyelenggara jalan."
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                LawDialogCard(
+                    number = "03",
+                    title = "PM No. 47 Tahun 2023",
+                    subtitle = "Penyelenggaraan Bidang LLAJ",
+                    articles = listOf(
+                        "Standar Pelayanan" to "Mengatur standar pelayanan minimal penyelenggaraan bidang lalu lintas.",
+                        "Fasilitas" to "Termasuk pemeliharaan fasilitas perlengkapan jalan dan penerangan jalan.",
+                        "Partisipasi" to "Masyarakat berhak mendapat informasi dan berpartisipasi dalam pengawasan."
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = PrimaryBlue.copy(alpha = 0.06f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Dengan menggunakan aplikasi ini, Anda turut berpartisipasi dalam pengawasan dan pelaporan infrastruktur sesuai dengan peraturan perundang-undangan yang berlaku.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF1A1A2E),
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun LawDialogCard(
+    number: String,
+    title: String,
+    subtitle: String,
+    articles: List<Pair<String, String>>
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(PrimaryBlue, RoundedCornerShape(7.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = number,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1A2E)
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            articles.forEachIndexed { index, (article, desc) ->
+                if (index > 0) Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.padding(start = 4.dp)) {
+                    Text(
+                        text = "• ",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue
+                    )
+                    Column {
+                        Text(
+                            text = article,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFF1A1A2E)
+                        )
+                        Text(
+                            text = desc,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CreditsDialog(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Tutup", color = PrimaryBlue)
+            }
+        },
+        title = {
+            Text(
+                text = "Kredit",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A2E)
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Telegram",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF1A1A2E)
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/inisahaf"))
+                            context.startActivity(intent)
+                        }
+                        .background(PrimaryBlue.copy(alpha = 0.08f))
+                        .padding(horizontal = 16.dp, vertical = 10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Telegram",
+                        modifier = Modifier.size(20.dp),
+                        tint = PrimaryBlue
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "@inisahaf",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = PrimaryBlue
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Ketuk untuk membuka Telegram",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun ThemeModeDialog(
+    currentMode: String,
+    onSelect: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val options = listOf(
+        "auto" to "Otomatis",
+        "light" to "Terang",
+        "dark" to "Gelap"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Batal", color = TextSecondary)
+            }
+        },
+        title = {
+            Text(
+                text = "Mode Tampilan",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A2E)
+            )
+        },
+        text = {
+            Column {
+                options.forEach { (value, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(value) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentMode == value,
+                            onClick = { onSelect(value) },
+                            colors = RadioButtonDefaults.colors(
+                                selectedColor = PrimaryBlue
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFF1A1A2E)
+                        )
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun RestartDialog(
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onApply,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryBlue
+                )
+            ) {
+                Text(
+                    text = "Terapkan",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Nanti", color = TextSecondary)
+            }
+        },
+        title = {
+            Text(
+                text = "Mode Tampilan",
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A2E)
+            )
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Mulai ulang aplikasi untuk menerapkan mode ini.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFF1A1A2E)
+                )
+            }
+        }
+    )
 }

@@ -91,14 +91,15 @@ private fun DevWarningScreen(onExit: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(Color(0xFFF5F5F5)),
         contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier
-                .padding(32.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .padding(28.dp),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
             Column(
                 modifier = Modifier
@@ -106,33 +107,58 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Warning,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = Color(0xFFE53935)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .background(Color(0xFFE53935).copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Warning,
+                        contentDescription = null,
+                        modifier = Modifier.size(34.dp),
+                        tint = Color(0xFFE53935)
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Mode Pengembang Terdeteksi",
+                    text = "Mode Pengembang",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFE53935),
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda sebelum menggunakan aplikasi ini.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = Color(0xFF757575)
+                    text = "Terdeteksi",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFFE53935).copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFF3E0)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda sebelum melanjutkan.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF795548),
+                        modifier = Modifier.padding(14.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     onClick = onExit,
@@ -142,7 +168,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE53935)
                     ),
-                    shape = MaterialTheme.shapes.medium
+                    shape = RoundedCornerShape(14.dp)
                 ) {
                     Text(
                         text = "Keluar",

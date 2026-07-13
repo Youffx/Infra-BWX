@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.infrabwx.app.InfraBwxApp
+import com.infrabwx.app.data.preferences.AppPreferences
 import com.infrabwx.app.ui.camera.CameraScreen
 import com.infrabwx.app.ui.category.CategoryScreen
 import com.infrabwx.app.ui.main.MainScreen
@@ -32,7 +33,9 @@ sealed class Screen(val route: String) {
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    hasAcceptedTerms: Boolean
+    hasAcceptedTerms: Boolean,
+    themeMode: String,
+    preferences: AppPreferences
 ) {
     val scope = rememberCoroutineScope()
     NavHost(
@@ -89,7 +92,14 @@ fun NavGraph(
                 onCategoryClick = { categoryId ->
                     navController.navigate(Screen.Category.createRoute(categoryId))
                 },
-                onSettingsClick = { /* placeholder */ }
+                themeMode = themeMode,
+                preferences = preferences,
+                onRestart = {
+                    val ctx = navController.context
+                    if (ctx is android.app.Activity) {
+                        ctx.finishAffinity()
+                    }
+                }
             )
         }
 

@@ -1,6 +1,8 @@
 package com.infrabwx.app.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -19,10 +21,28 @@ private val LightColorScheme = lightColorScheme(
     onError = White
 )
 
+private val DarkColorScheme = darkColorScheme(
+    primary = PrimaryBlue,
+    onPrimary = White,
+    primaryContainer = Color(0xFF1A3A5C),
+    secondary = PrimaryGreen,
+    onSecondary = White,
+    background = DarkBackground,
+    onBackground = DarkTextPrimary,
+    surface = DarkSurface,
+    onSurface = DarkTextPrimary,
+    error = Color(0xFFCF6679),
+    onError = Color(0xFF1A1A1A)
+)
+
 @Composable
-fun InfraBWXTheme(content: @Composable () -> Unit) {
+fun InfraBWXTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
     MaterialTheme(
-        colorScheme = LightColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )
