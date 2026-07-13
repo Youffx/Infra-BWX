@@ -33,13 +33,11 @@ object LocationUtils {
             val addresses: List<Address>? = geocoder.getFromLocation(lat, lng, 1)
             if (!addresses.isNullOrEmpty()) {
                 val address = addresses[0]
-                val adminArea = address.adminArea ?: ""
-                val subAdminArea = address.subAdminArea ?: ""
                 val locality = address.locality ?: ""
-                val subLocality = address.subLocality ?: ""
+                val subAdminArea = address.subAdminArea ?: ""
+                val adminArea = address.adminArea ?: ""
 
-                subLocality.takeIf { it.isNotEmpty() }
-                    ?: locality.takeIf { it.isNotEmpty() }
+                locality.takeIf { it.isNotEmpty() }
                     ?: subAdminArea.takeIf { it.isNotEmpty() }
                     ?: adminArea
             } else {
