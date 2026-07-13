@@ -232,7 +232,7 @@ private fun CategoryCard(category: ReportCategory, onClick: () -> Unit) {
                     text = category.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(category.color)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

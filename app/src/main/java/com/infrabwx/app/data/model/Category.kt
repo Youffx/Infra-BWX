@@ -23,7 +23,7 @@ object CategoryProvider {
         ),
         ReportCategory(
             id = "lampu_mati",
-            name = "Lampu Mati",
+            name = "Lampu Jalan Padam",
             icon = "lightbulb_off",
             color = 0xFFFFA000
         ),

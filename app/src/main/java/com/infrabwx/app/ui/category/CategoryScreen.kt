@@ -235,7 +235,7 @@ private fun RankingCard(index: Int, item: RankingItem, categoryColor: Color) {
                 Text(
                     text = "$index",
                     fontWeight = FontWeight.Bold,
-                    color = if (index <= 3) Color.Black else Color.Gray
+                    color = if (index <= 3) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
