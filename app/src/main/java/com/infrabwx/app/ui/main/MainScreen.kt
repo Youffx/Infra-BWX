@@ -471,7 +471,7 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/inisahaf"))
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/YouffX"))
                             context.startActivity(intent)
                         }
                         .background(PrimaryBlue.copy(alpha = 0.08f))
@@ -485,7 +485,7 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "@inisahaf",
+                        text = "@YouffX",
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = PrimaryBlue
