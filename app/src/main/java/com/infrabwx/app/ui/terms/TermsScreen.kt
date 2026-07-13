@@ -41,7 +41,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.infrabwx.app.ui.theme.PrimaryBlue
 import com.infrabwx.app.ui.theme.PrimaryGreen
-import com.infrabwx.app.ui.theme.TextSecondary
 
 @Composable
 fun TermsScreen(onAccepted: () -> Unit) {
@@ -81,7 +80,7 @@ fun TermsScreen(onAccepted: () -> Unit) {
                 text = "Ketentuan Hukum",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1A1A2E)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -89,7 +88,7 @@ fun TermsScreen(onAccepted: () -> Unit) {
             Text(
                 text = "Undang-Undang dan Peraturan Terkait",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -136,14 +135,14 @@ fun TermsScreen(onAccepted: () -> Unit) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = PrimaryBlue.copy(alpha = 0.06f)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     text = "Dengan melanjutkan, Anda menyatakan bahwa Anda telah membaca dan memahami ketentuan hukum di atas serta bersedia melaporkan infrastruktur secara bertanggung jawab sesuai dengan peraturan yang berlaku.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF1A1A2E),
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(16.dp)
                 )
             }
@@ -151,7 +150,7 @@ fun TermsScreen(onAccepted: () -> Unit) {
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        HorizontalDivider(color = Color(0xFFEEEEEE))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
         Column(
             modifier = Modifier
@@ -175,7 +174,7 @@ fun TermsScreen(onAccepted: () -> Unit) {
                     text = "Saya sudah membaca dan memahami seluruh ketentuan di atas",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF1A1A2E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -221,7 +220,7 @@ private fun LawCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -239,7 +238,7 @@ private fun LawCard(
                         text = number,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
@@ -248,12 +247,12 @@ private fun LawCard(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1A2E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -278,12 +277,12 @@ private fun LawCard(
                             text = article,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF1A1A2E)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = desc,
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }

@@ -51,7 +51,6 @@ import com.infrabwx.app.data.remote.AppsScriptRepository
 import com.infrabwx.app.ui.theme.DarkGreen
 import com.infrabwx.app.ui.theme.PrimaryBlue
 import com.infrabwx.app.ui.theme.PrimaryGreen
-import com.infrabwx.app.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +89,7 @@ fun CategoryScreen(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White
+                containerColor = MaterialTheme.colorScheme.surface
             )
         )
 
@@ -173,7 +172,7 @@ private fun RankingContent(
         Text(
             text = "Kecamatan dengan laporan terbanyak",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -186,7 +185,7 @@ private fun RankingContent(
                 Text(
                     text = "Memuat data...",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         } else if (ranking.isEmpty()) {
@@ -197,7 +196,7 @@ private fun RankingContent(
                 Text(
                     text = "Belum ada laporan untuk kategori ini",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
         } else {
@@ -216,7 +215,7 @@ private fun RankingContent(
 private fun RankingCard(index: Int, item: RankingItem, categoryColor: Color) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         shape = MaterialTheme.shapes.small
     ) {
@@ -271,7 +270,7 @@ private fun TakedownContent() {
             imageVector = Icons.Default.Report,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = TextSecondary
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -287,7 +286,7 @@ private fun TakedownContent() {
                     "Setiap permohonan takedown akan diverifikasi terlebih dahulu sebelum diproses lebih lanjut.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = TextSecondary
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
         )
     }
 }

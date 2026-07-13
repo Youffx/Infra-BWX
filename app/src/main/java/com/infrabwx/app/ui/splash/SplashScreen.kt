@@ -30,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +73,7 @@ fun SplashScreen(onSplashComplete: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -91,7 +90,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5F5)),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         Card(
@@ -99,7 +98,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                 .padding(28.dp),
             shape = RoundedCornerShape(20.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             Column(
                 modifier = Modifier
@@ -110,14 +109,14 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(64.dp)
-                        .background(Color(0xFFE53935).copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
+                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.1f), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Warning,
                         contentDescription = null,
                         modifier = Modifier.size(34.dp),
-                        tint = Color(0xFFE53935)
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
 
@@ -127,7 +126,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                     text = "Mode Pengembang",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE53935),
+                    color = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center
                 )
 
@@ -137,7 +136,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                     text = "Terdeteksi",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFFE53935).copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
 
@@ -146,14 +145,14 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFFF3E0)
+                        containerColor = MaterialTheme.colorScheme.errorContainer
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda sebelum melanjutkan.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF795548),
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                         modifier = Modifier.padding(14.dp)
                     )
                 }
@@ -166,7 +165,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE53935)
+                        containerColor = MaterialTheme.colorScheme.error
                     ),
                     shape = RoundedCornerShape(14.dp)
                 ) {
@@ -174,7 +173,7 @@ private fun DevWarningScreen(onExit: () -> Unit) {
                         text = "Keluar",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onError
                     )
                 }
             }

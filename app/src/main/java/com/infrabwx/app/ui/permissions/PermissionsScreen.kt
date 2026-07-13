@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.infrabwx.app.ui.theme.DarkBlue
 import com.infrabwx.app.ui.theme.PrimaryBlue
 import kotlinx.coroutines.delay
 
@@ -100,7 +99,7 @@ fun PermissionsScreen(onPermissionsGranted: () -> Unit, onDenied: () -> Unit) {
             text = "Akses Kamera",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = DarkBlue
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -122,7 +121,7 @@ fun PermissionsScreen(onPermissionsGranted: () -> Unit, onDenied: () -> Unit) {
             text = "Akses Lokasi",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = DarkBlue
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
