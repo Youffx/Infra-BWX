@@ -312,7 +312,7 @@ private fun ClusterLocationDialog(
                             Icon(
                                 Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = Color(0xFF43A047),
+                                tint = MaterialTheme.colorScheme.tertiary,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(Modifier.width(4.dp))
@@ -320,7 +320,7 @@ private fun ClusterLocationDialog(
                                 text = "Sudah diperbaiki",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF43A047)
+                                color = MaterialTheme.colorScheme.tertiary
                             )
                         }
                     }
@@ -346,7 +346,7 @@ private fun ClusterLocationDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -362,13 +362,11 @@ private fun DetailRow(label: String, value: String) {
         Text(
             text = "$label: ",
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            fontWeight = FontWeight.SemiBold
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
