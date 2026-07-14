@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocationOn
@@ -114,17 +115,19 @@ fun MapSection(
 
         LaunchedEffect(locations) {
             mapView.overlays.clear()
-            val clusters = buildClusters(locations, CLUSTER_RADIUS_METERS)
+            val reds = locations.filter { it.status != "green" }
+            val greens = locations.filter { it.status == "green" }
+
+            val clusters = buildClusters(reds, CLUSTER_RADIUS_METERS)
             for (cluster in clusters) {
-                val avgColor = if (cluster.locations.all { it.status == "green" })
-                    AndroidColor.parseColor("#43A047") else AndroidColor.parseColor("#E53935")
+                val color = AndroidColor.parseColor("#E53935")
+                val nonGreenCount = cluster.locations.size
 
                 if (cluster.locations.size == 1) {
                     val marker = Marker(mapView).apply {
                         position = cluster.centroid
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        icon = createDot(avgColor)
-                        title = "${cluster.locations[0].kecamatan} - ${cluster.locations[0].category}"
+                        icon = createDot(color)
                         setInfoWindow(null)
                         setOnMarkerClickListener { _, _ ->
                             selectedCluster = cluster
@@ -135,8 +138,8 @@ fun MapSection(
                 } else {
                     val circle = Polygon().apply {
                         points = Polygon.pointsAsCircle(cluster.centroid, cluster.radiusMeters + 20.0)
-                        fillColor = AndroidColor.argb(40, AndroidColor.red(avgColor), AndroidColor.green(avgColor), AndroidColor.blue(avgColor))
-                        strokeColor = AndroidColor.argb(120, AndroidColor.red(avgColor), AndroidColor.green(avgColor), AndroidColor.blue(avgColor))
+                        fillColor = AndroidColor.argb(35, 229, 57, 53)
+                        strokeColor = AndroidColor.argb(100, 229, 57, 53)
                         strokeWidth = 2f
                     }
                     mapView.overlays.add(circle)
@@ -144,8 +147,7 @@ fun MapSection(
                     val marker = Marker(mapView).apply {
                         position = cluster.centroid
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                        icon = createClusterDot(avgColor, cluster.locations.size)
-                        title = "${cluster.locations.size} laporan"
+                        icon = createClusterDot(nonGreenCount)
                         setInfoWindow(null)
                         setOnMarkerClickListener { _, _ ->
                             selectedCluster = cluster
@@ -155,6 +157,26 @@ fun MapSection(
                     mapView.overlays.add(marker)
                 }
             }
+
+            for (loc in greens) {
+                val green = AndroidColor.parseColor("#43A047")
+                val marker = Marker(mapView).apply {
+                    position = GeoPoint(loc.latitude, loc.longitude)
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    icon = createDot(green)
+                    setInfoWindow(null)
+                    setOnMarkerClickListener { _, _ ->
+                        selectedCluster = ReportCluster(
+                            centroid = GeoPoint(loc.latitude, loc.longitude),
+                            locations = listOf(loc),
+                            radiusMeters = 0.0
+                        )
+                        true
+                    }
+                }
+                mapView.overlays.add(marker)
+            }
+
             mapView.invalidate()
         }
 
@@ -231,7 +253,6 @@ fun MapSection(
     selectedCluster?.let { cluster ->
         ClusterLocationDialog(
             cluster = cluster,
-            isFullScreen = isFullScreen,
             onDismiss = { selectedCluster = null },
             context = context
         )
@@ -241,7 +262,6 @@ fun MapSection(
 @Composable
 private fun ClusterLocationDialog(
     cluster: ReportCluster,
-    isFullScreen: Boolean,
     onDismiss: () -> Unit,
     context: Context
 ) {
@@ -288,7 +308,21 @@ private fun ClusterLocationDialog(
                     DetailRow("Longitude", loc.longitude.toString())
                     if (loc.status == "green") {
                         Spacer(Modifier.height(2.dp))
-                        DetailRow("Status", "Terverifikasi")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = Color(0xFF43A047),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "Sudah diperbaiki",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF43A047)
+                            )
+                        }
                     }
                     Spacer(Modifier.height(4.dp))
                     Button(
@@ -392,20 +426,22 @@ private fun createDot(color: Int): android.graphics.drawable.Drawable {
     }
 }
 
-private fun createClusterDot(color: Int, count: Int): android.graphics.drawable.Drawable {
+private fun createClusterDot(count: Int): android.graphics.drawable.Drawable {
     return object : android.graphics.drawable.Drawable() {
         override fun draw(canvas: android.graphics.Canvas) {
             val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-            paint.color = AndroidColor.WHITE
+            val color = AndroidColor.parseColor("#E53935")
+
+            paint.color = color
             paint.style = android.graphics.Paint.Style.FILL
             canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), 28f, paint)
 
-            paint.color = color
+            paint.color = AndroidColor.WHITE
             paint.style = android.graphics.Paint.Style.STROKE
-            paint.strokeWidth = 4f
+            paint.strokeWidth = 3f
             canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), 28f, paint)
 
-            paint.color = color
+            paint.color = AndroidColor.WHITE
             paint.style = android.graphics.Paint.Style.FILL
             paint.textSize = 28f
             paint.textAlign = android.graphics.Paint.Align.CENTER

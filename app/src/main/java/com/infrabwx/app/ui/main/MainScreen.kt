@@ -5,10 +5,11 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.view.View
-import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -135,19 +136,13 @@ fun MainScreen(
     if (isMapFullScreen) {
         val activity = LocalContext.current as? Activity
         DisposableEffect(Unit) {
-            val originalVisibility = activity?.window?.decorView?.systemUiVisibility ?: 0
-            val originalStatusBarColor = activity?.window?.statusBarColor ?: 0
-            activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            activity?.window?.decorView?.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-                View.SYSTEM_UI_FLAG_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            )
-            activity?.window?.statusBarColor = android.graphics.Color.TRANSPARENT
+            val window = activity?.window ?: return@DisposableEffect
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            controller.hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             onDispose {
-                activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                activity?.window?.decorView?.systemUiVisibility = originalVisibility
-                activity?.window?.statusBarColor = originalStatusBarColor
+                controller.show(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
             }
         }
         Box(modifier = Modifier.fillMaxSize()) {
