@@ -60,7 +60,9 @@ function saveImageToDrive(base64Data, category, kecamatan) {
   var fileName = category + "_" + kecamatan + "_" + timestamp + ".jpg";
   var decodedData = Utilities.base64Decode(base64Data);
   var blob = Utilities.newBlob(decodedData, "image/jpeg", fileName);
-  return folder.createFile(blob).getId();
+  var file = folder.createFile(blob);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return file.getId();
 }
 
 function appendToSheet(category, latitude, longitude, kecamatan, imageId, imageUrl) {

@@ -27,12 +27,13 @@ import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.SatelliteAlt
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -223,7 +224,7 @@ private fun CompactLocationDialog(
         },
         text = {
             Column {
-                DetailRow("Kategori", location.category)
+                DetailRow("Kategori", formatCategory(location.category))
                 Spacer(Modifier.height(4.dp))
                 DetailRow("Latitude", location.latitude.toString())
                 Spacer(Modifier.height(4.dp))
@@ -231,16 +232,32 @@ private fun CompactLocationDialog(
             }
         },
         confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = {
-                    context.openInGoogleMaps(location)
-                }) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text("Tutup")
+                }
+                Button(
+                    onClick = { context.openInGoogleMaps(location) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
                     Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Buka di Google Maps")
-                }
-                TextButton(onClick = onDismiss) {
-                    Text("Tutup")
+                    Text("Buka Gmaps")
                 }
             }
         }
@@ -276,7 +293,7 @@ private fun FullscreenLocationDialog(
                     )
                     Spacer(Modifier.height(12.dp))
                 }
-                DetailRow("Kategori", location.category)
+                DetailRow("Kategori", formatCategory(location.category))
                 Spacer(Modifier.height(4.dp))
                 DetailRow("Latitude", location.latitude.toString())
                 Spacer(Modifier.height(4.dp))
@@ -288,16 +305,32 @@ private fun FullscreenLocationDialog(
             }
         },
         confirmButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = {
-                    context.openInGoogleMaps(location)
-                }) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.padding(end = 8.dp)
+                ) {
+                    Text("Tutup")
+                }
+                Button(
+                    onClick = { context.openInGoogleMaps(location) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
                     Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Buka di Google Maps")
-                }
-                TextButton(onClick = onDismiss) {
-                    Text("Tutup")
+                    Text("Buka Gmaps")
                 }
             }
         }
@@ -310,14 +343,18 @@ private fun DetailRow(label: String, value: String) {
         Text(
             text = "$label: ",
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
+            fontWeight = FontWeight.SemiBold
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            style = MaterialTheme.typography.bodyMedium
         )
+    }
+}
+
+private fun formatCategory(category: String): String {
+    return category.split("_").joinToString(" ") { word ->
+        word.replaceFirstChar { it.uppercase() }
     }
 }
 
