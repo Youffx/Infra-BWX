@@ -2,8 +2,9 @@ package com.infrabwx.app.ui.main
 
 import android.graphics.drawable.GradientDrawable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -55,7 +57,9 @@ fun MapSection(
 
     LaunchedEffect(Unit) {
         val result = repository.getReportLocations()
-        locations = result.getOrDefault(emptyList())
+        if (result.isSuccess) {
+            locations = result.getOrDefault(emptyList())
+        }
     }
 
     Box(modifier = modifier) {
@@ -78,14 +82,16 @@ fun MapSection(
         LaunchedEffect(locations) {
             mapView.overlays.removeAll { it is Marker }
             for (loc in locations) {
-                val geo = GeoPoint(loc.latitude, loc.longitude)
                 val marker = Marker(mapView).apply {
-                    position = geo
+                    position = GeoPoint(loc.latitude, loc.longitude)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    icon = redDotIcon
+                    icon = createRedDot()
                     title = "${loc.kecamatan} - ${loc.category}"
                 }
                 mapView.overlays.add(marker)
+            }
+            if (locations.isNotEmpty()) {
+                mapView.invalidate()
             }
         }
 
@@ -94,7 +100,7 @@ fun MapSection(
                 if (isSatellite) {
                     XYTileSource(
                         "Satellite",
-                        3, 20, 256, ".png",
+                        3, 20, 256, "",
                         arrayOf("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile")
                     )
                 } else {
@@ -114,17 +120,18 @@ fun MapSection(
             modifier = Modifier.fillMaxSize()
         )
 
-        Column(
+        Row(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IconButton(
                 onClick = onToggleFullScreen,
                 modifier = Modifier
-                    .size(36.dp)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), CircleShape),
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )
@@ -132,18 +139,18 @@ fun MapSection(
                 Icon(
                     imageVector = Icons.Default.Fullscreen,
                     contentDescription = if (isFullScreen) "Ciutkan" else "Fullscreen",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
 
             IconButton(
                 onClick = { isSatellite = !isSatellite },
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
                     .background(
                         if (isSatellite) PrimaryBlue.copy(alpha = 0.9f)
-                        else MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                        CircleShape
+                        else MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
                     ),
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = if (isSatellite) Color.White else MaterialTheme.colorScheme.onSurface
@@ -152,18 +159,19 @@ fun MapSection(
                 Icon(
                     imageVector = if (isSatellite) Icons.Default.SatelliteAlt else Icons.Default.Layers,
                     contentDescription = if (isSatellite) "Peta" else "Satelit",
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }
     }
 }
 
-private val redDotIcon: android.graphics.drawable.Drawable by lazy {
-    GradientDrawable().apply {
+private fun createRedDot(): android.graphics.drawable.Drawable {
+    return GradientDrawable().apply {
         shape = GradientDrawable.OVAL
         setSize(48, 48)
         setColor(android.graphics.Color.parseColor("#E53935"))
         setStroke(4, android.graphics.Color.WHITE)
+        setBounds(0, 0, 48, 48)
     }
 }

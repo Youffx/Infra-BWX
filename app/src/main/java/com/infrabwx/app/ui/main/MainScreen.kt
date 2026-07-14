@@ -239,14 +239,14 @@ fun MainScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Box(modifier = Modifier.height(220.dp)) {
+                Box(modifier = Modifier.height(240.dp)) {
                     MapSection(
                         modifier = Modifier.fillMaxSize(),
                         isFullScreen = false,
