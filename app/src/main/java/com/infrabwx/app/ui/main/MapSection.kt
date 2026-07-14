@@ -69,7 +69,7 @@ import org.osmdroid.views.overlay.Polygon
 
 private const val BANYUWANGI_LAT = -8.2186
 private const val BANYUWANGI_LNG = 114.3667
-private const val CLUSTER_RADIUS_METERS = 20.0
+private const val CLUSTER_RADIUS_METERS = 200.0
 
 private data class ReportCluster(
     val centroid: GeoPoint,
@@ -150,7 +150,7 @@ fun MapSection(
                     mapView.overlays.add(marker)
                 } else {
                     val circle = Polygon().apply {
-                        points = Polygon.pointsAsCircle(cluster.centroid, cluster.radiusMeters + 20.0)
+                        points = Polygon.pointsAsCircle(cluster.centroid, cluster.radiusMeters + 200.0)
                         fillColor = AndroidColor.argb(35, 229, 57, 53)
                         strokeColor = AndroidColor.argb(100, 229, 57, 53)
                         strokeWidth = 2f
