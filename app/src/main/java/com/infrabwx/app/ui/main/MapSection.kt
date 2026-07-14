@@ -2,6 +2,7 @@ package com.infrabwx.app.ui.main
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color as AndroidColor
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.view.MotionEvent
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.SatelliteAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -60,9 +62,17 @@ import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polygon
 
 private const val BANYUWANGI_LAT = -8.2186
 private const val BANYUWANGI_LNG = 114.3667
+private const val CLUSTER_RADIUS_METERS = 20.0
+
+private data class ReportCluster(
+    val centroid: GeoPoint,
+    val locations: List<ReportLocationItem>,
+    val radiusMeters: Double
+)
 
 @Composable
 fun MapSection(
@@ -74,7 +84,7 @@ fun MapSection(
     val repository = remember { AppsScriptRepository() }
     var locations by remember { mutableStateOf<List<ReportLocationItem>>(emptyList()) }
     var isSatellite by remember { mutableStateOf(false) }
-    var selectedLocation by remember { mutableStateOf<ReportLocationItem?>(null) }
+    var selectedCluster by remember { mutableStateOf<ReportCluster?>(null) }
 
     LaunchedEffect(Unit) {
         val result = repository.getReportLocations()
@@ -103,25 +113,49 @@ fun MapSection(
         }
 
         LaunchedEffect(locations) {
-            mapView.overlays.removeAll { it is Marker }
-            for (loc in locations) {
-                val dot = if (loc.status == "green") createGreenDot() else createRedDot()
-                val marker = Marker(mapView).apply {
-                    position = GeoPoint(loc.latitude, loc.longitude)
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    icon = dot
-                    title = "${loc.kecamatan} - ${loc.category}"
-                    setInfoWindow(null)
-                    setOnMarkerClickListener { _, _ ->
-                        selectedLocation = loc
-                        true
+            mapView.overlays.clear()
+            val clusters = buildClusters(locations, CLUSTER_RADIUS_METERS)
+            for (cluster in clusters) {
+                val avgColor = if (cluster.locations.all { it.status == "green" })
+                    AndroidColor.parseColor("#43A047") else AndroidColor.parseColor("#E53935")
+
+                if (cluster.locations.size == 1) {
+                    val marker = Marker(mapView).apply {
+                        position = cluster.centroid
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        icon = createDot(avgColor)
+                        title = "${cluster.locations[0].kecamatan} - ${cluster.locations[0].category}"
+                        setInfoWindow(null)
+                        setOnMarkerClickListener { _, _ ->
+                            selectedCluster = cluster
+                            true
+                        }
                     }
+                    mapView.overlays.add(marker)
+                } else {
+                    val circle = Polygon().apply {
+                        points = Polygon.pointsAsCircle(cluster.centroid, cluster.radiusMeters + 20.0)
+                        fillColor = AndroidColor.argb(40, AndroidColor.red(avgColor), AndroidColor.green(avgColor), AndroidColor.blue(avgColor))
+                        strokeColor = AndroidColor.argb(120, AndroidColor.red(avgColor), AndroidColor.green(avgColor), AndroidColor.blue(avgColor))
+                        strokeWidth = 2f
+                    }
+                    mapView.overlays.add(circle)
+
+                    val marker = Marker(mapView).apply {
+                        position = cluster.centroid
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                        icon = createClusterDot(avgColor, cluster.locations.size)
+                        title = "${cluster.locations.size} laporan"
+                        setInfoWindow(null)
+                        setOnMarkerClickListener { _, _ ->
+                            selectedCluster = cluster
+                            true
+                        }
+                    }
+                    mapView.overlays.add(marker)
                 }
-                mapView.overlays.add(marker)
             }
-            if (locations.isNotEmpty()) {
-                mapView.invalidate()
-            }
+            mapView.invalidate()
         }
 
         LaunchedEffect(isSatellite) {
@@ -194,86 +228,32 @@ fun MapSection(
         }
     }
 
-    selectedLocation?.let { loc ->
-        if (isFullScreen) {
-            FullscreenLocationDialog(
-                location = loc,
-                onDismiss = { selectedLocation = null },
-                context = context
-            )
-        } else {
-            CompactLocationDialog(
-                location = loc,
-                onDismiss = { selectedLocation = null },
-                context = context
-            )
-        }
+    selectedCluster?.let { cluster ->
+        ClusterLocationDialog(
+            cluster = cluster,
+            isFullScreen = isFullScreen,
+            onDismiss = { selectedCluster = null },
+            context = context
+        )
     }
 }
 
 @Composable
-private fun CompactLocationDialog(
-    location: ReportLocationItem,
+private fun ClusterLocationDialog(
+    cluster: ReportCluster,
+    isFullScreen: Boolean,
     onDismiss: () -> Unit,
     context: Context
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(location.kecamatan, fontWeight = FontWeight.Bold)
-        },
-        text = {
-            Column {
-                DetailRow("Kategori", formatCategory(location.category))
-                Spacer(Modifier.height(4.dp))
-                DetailRow("Latitude", location.latitude.toString())
-                Spacer(Modifier.height(4.dp))
-                DetailRow("Longitude", location.longitude.toString())
-            }
-        },
-        confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Text("Tutup")
-                }
-                Button(
-                    onClick = { context.openInGoogleMaps(location) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryBlue,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Buka Gmaps")
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun FullscreenLocationDialog(
-    location: ReportLocationItem,
-    onDismiss: () -> Unit,
-    context: Context
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(location.kecamatan, fontWeight = FontWeight.Bold)
+            Text(
+                text = if (cluster.locations.size == 1) cluster.locations[0].kecamatan
+                       else "${cluster.locations.size} Laporan di Area Ini",
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         },
         text = {
             Column(
@@ -281,57 +261,62 @@ private fun FullscreenLocationDialog(
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (!location.imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = location.imageUrl,
-                        contentDescription = "Foto lokasi",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Spacer(Modifier.height(12.dp))
-                }
-                DetailRow("Kategori", formatCategory(location.category))
-                Spacer(Modifier.height(4.dp))
-                DetailRow("Latitude", location.latitude.toString())
-                Spacer(Modifier.height(4.dp))
-                DetailRow("Longitude", location.longitude.toString())
-                if (location.status == "green") {
+                cluster.locations.forEachIndexed { index, loc ->
+                    if (index > 0) {
+                        Spacer(Modifier.height(8.dp))
+                        HorizontalDivider()
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    if (!loc.imageUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = loc.imageUrl,
+                            contentDescription = "Foto",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    DetailRow("Kategori", formatCategory(loc.category))
+                    Spacer(Modifier.height(2.dp))
+                    DetailRow("Kecamatan", loc.kecamatan)
+                    Spacer(Modifier.height(2.dp))
+                    DetailRow("Latitude", loc.latitude.toString())
+                    Spacer(Modifier.height(2.dp))
+                    DetailRow("Longitude", loc.longitude.toString())
+                    if (loc.status == "green") {
+                        Spacer(Modifier.height(2.dp))
+                        DetailRow("Status", "Terverifikasi")
+                    }
                     Spacer(Modifier.height(4.dp))
-                    DetailRow("Status", "Terverifikasi")
+                    Button(
+                        onClick = { context.openInGoogleMaps(loc) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryBlue,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Buka Gmaps")
+                    }
                 }
             }
         },
         confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(end = 8.dp)
-                ) {
-                    Text("Tutup")
-                }
-                Button(
-                    onClick = { context.openInGoogleMaps(location) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryBlue,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Buka Gmaps")
-                }
+                Text("Tutup")
             }
         }
     )
@@ -343,11 +328,13 @@ private fun DetailRow(label: String, value: String) {
         Text(
             text = "$label: ",
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -363,22 +350,72 @@ private fun Context.openInGoogleMaps(loc: ReportLocationItem) {
     startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
 }
 
-private fun createRedDot(): android.graphics.drawable.Drawable {
+private fun buildClusters(locations: List<ReportLocationItem>, maxDist: Double): List<ReportCluster> {
+    val unvisited = locations.toMutableList()
+    val result = mutableListOf<ReportCluster>()
+
+    while (unvisited.isNotEmpty()) {
+        val cluster = mutableListOf(unvisited.removeAt(0))
+        var i = 0
+        while (i < cluster.size) {
+            val pivot = GeoPoint(cluster[i].latitude, cluster[i].longitude)
+            val iter = unvisited.iterator()
+            while (iter.hasNext()) {
+                val candidate = iter.next()
+                val dist = GeoPoint(candidate.latitude, candidate.longitude).distanceToAsDouble(pivot)
+                if (dist <= maxDist) {
+                    cluster.add(candidate)
+                    iter.remove()
+                }
+            }
+            i++
+        }
+
+        val avgLat = cluster.map { it.latitude }.average()
+        val avgLng = cluster.map { it.longitude }.average()
+        val centroid = GeoPoint(avgLat, avgLng)
+        val radius = cluster.maxOf {
+            GeoPoint(it.latitude, it.longitude).distanceToAsDouble(centroid)
+        }
+        result.add(ReportCluster(centroid, cluster, radius))
+    }
+    return result
+}
+
+private fun createDot(color: Int): android.graphics.drawable.Drawable {
     return GradientDrawable().apply {
         shape = GradientDrawable.OVAL
         setSize(48, 48)
-        setColor(android.graphics.Color.parseColor("#E53935"))
-        setStroke(4, android.graphics.Color.WHITE)
+        setColor(color)
+        setStroke(4, AndroidColor.WHITE)
         setBounds(0, 0, 48, 48)
     }
 }
 
-private fun createGreenDot(): android.graphics.drawable.Drawable {
-    return GradientDrawable().apply {
-        shape = GradientDrawable.OVAL
-        setSize(48, 48)
-        setColor(android.graphics.Color.parseColor("#43A047"))
-        setStroke(4, android.graphics.Color.WHITE)
-        setBounds(0, 0, 48, 48)
+private fun createClusterDot(color: Int, count: Int): android.graphics.drawable.Drawable {
+    return object : android.graphics.drawable.Drawable() {
+        override fun draw(canvas: android.graphics.Canvas) {
+            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+            paint.color = AndroidColor.WHITE
+            paint.style = android.graphics.Paint.Style.FILL
+            canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), 28f, paint)
+
+            paint.color = color
+            paint.style = android.graphics.Paint.Style.STROKE
+            paint.strokeWidth = 4f
+            canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), 28f, paint)
+
+            paint.color = color
+            paint.style = android.graphics.Paint.Style.FILL
+            paint.textSize = 28f
+            paint.textAlign = android.graphics.Paint.Align.CENTER
+            val y = bounds.exactCenterY() - (paint.descent() + paint.ascent()) / 2f
+            canvas.drawText(count.toString(), bounds.exactCenterX(), y, paint)
+        }
+
+        override fun setAlpha(alpha: Int) {}
+        override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) {}
+        @Deprecated("Deprecated in Java")
+        override fun getOpacity(): Int = android.graphics.PixelFormat.OPAQUE
     }
 }

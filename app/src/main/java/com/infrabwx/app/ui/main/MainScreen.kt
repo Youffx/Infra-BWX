@@ -1,10 +1,14 @@
 package com.infrabwx.app.ui.main
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.view.View
 import android.view.WindowManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +72,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.infrabwx.app.data.model.CategoryProvider
 import com.infrabwx.app.data.model.ReportCategory
 import com.infrabwx.app.data.preferences.AppPreferences
@@ -105,6 +110,19 @@ fun MainScreen(
     var showDevWarning by remember { mutableStateOf(false) }
     var isMapFullScreen by remember { mutableStateOf(false) }
 
+    var pendingCategoryId by remember { mutableStateOf<String?>(null) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        val id = pendingCategoryId
+        pendingCategoryId = null
+        if (allGranted && id != null) {
+            onCategoryClick(id)
+        }
+    }
+
     if (showDevWarning) {
         DevWarningDialog(
             onExit = {
@@ -118,15 +136,18 @@ fun MainScreen(
         val activity = LocalContext.current as? Activity
         DisposableEffect(Unit) {
             val originalVisibility = activity?.window?.decorView?.systemUiVisibility ?: 0
+            val originalStatusBarColor = activity?.window?.statusBarColor ?: 0
             activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             activity?.window?.decorView?.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
                 View.SYSTEM_UI_FLAG_FULLSCREEN or
                 View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
             )
+            activity?.window?.statusBarColor = android.graphics.Color.TRANSPARENT
             onDispose {
                 activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
                 activity?.window?.decorView?.systemUiVisibility = originalVisibility
+                activity?.window?.statusBarColor = originalStatusBarColor
             }
         }
         Box(modifier = Modifier.fillMaxSize()) {
@@ -246,7 +267,16 @@ fun MainScreen(
                             if (context.isDevModeEnabled()) {
                                 showDevWarning = true
                             } else {
-                                onCategoryClick(category.id)
+                                val cameraOk = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                                val locationOk = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                if (cameraOk && locationOk) {
+                                    onCategoryClick(category.id)
+                                } else {
+                                    pendingCategoryId = category.id
+                                    permissionLauncher.launch(
+                                        arrayOf(Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    )
+                                }
                             }
                         }
                     )
