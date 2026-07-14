@@ -1,7 +1,6 @@
 package com.infrabwx.app.ui.splash
 
 import android.app.Activity
-import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -36,27 +35,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.infrabwx.app.R
+import com.infrabwx.app.util.isDevModeEnabled
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(onSplashComplete: () -> Unit) {
+fun SplashScreen(onSplashComplete: () -> Unit, isDark: Boolean) {
     val context = LocalContext.current
     var showDevWarning by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         delay(3500L)
 
-        val devModeEnabled = try {
-            Settings.Global.getInt(
-                context.contentResolver,
-                Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
-                0
-            ) != 0
-        } catch (_: Exception) {
-            false
-        }
-
-        if (devModeEnabled) {
+        if (context.isDevModeEnabled()) {
             showDevWarning = true
         } else {
             onSplashComplete()
@@ -77,7 +67,9 @@ fun SplashScreen(onSplashComplete: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Image(
-                painter = painterResource(id = R.drawable.in_app_logo),
+                painter = painterResource(
+                    id = if (isDark) R.drawable.in_app_logo_dark else R.drawable.in_app_logo_light
+                ),
                 contentDescription = "App Logo",
                 modifier = Modifier.size(160.dp)
             )

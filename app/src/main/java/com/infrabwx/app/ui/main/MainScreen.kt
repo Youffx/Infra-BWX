@@ -1,5 +1,6 @@
 package com.infrabwx.app.ui.main
 
+import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 
 import androidx.compose.material3.Card
@@ -64,6 +66,7 @@ import com.infrabwx.app.data.model.CategoryProvider
 import com.infrabwx.app.data.model.ReportCategory
 import com.infrabwx.app.data.preferences.AppPreferences
 import com.infrabwx.app.ui.theme.PrimaryBlue
+import com.infrabwx.app.util.isDevModeEnabled
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,11 +90,22 @@ fun MainScreen(
     themeMode: String,
     preferences: AppPreferences
 ) {
+    val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
     var showCreditsDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var selectedTheme by remember { mutableStateOf(themeMode) }
+    var showDevWarning by remember { mutableStateOf(false) }
+
+    if (showDevWarning) {
+        DevWarningDialog(
+            onExit = {
+                (context as? Activity)?.finishAffinity()
+            },
+            onDismiss = { showDevWarning = false }
+        )
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -105,7 +119,13 @@ fun MainScreen(
                 )
             },
             actions = {
-                IconButton(onClick = { showMenu = true }) {
+                IconButton(onClick = {
+                    if (context.isDevModeEnabled()) {
+                        showDevWarning = true
+                    } else {
+                        showMenu = true
+                    }
+                }) {
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
@@ -119,23 +139,38 @@ fun MainScreen(
                     DropdownMenuItem(
                         text = { Text("Ketentuan Hukum", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
-                            showMenu = false
-                            showTermsDialog = true
+                            if (context.isDevModeEnabled()) {
+                                showMenu = false
+                                showDevWarning = true
+                            } else {
+                                showMenu = false
+                                showTermsDialog = true
+                            }
                         }
                     )
                     DropdownMenuItem(
                         text = { Text("Developer", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
-                            showMenu = false
-                            showCreditsDialog = true
+                            if (context.isDevModeEnabled()) {
+                                showMenu = false
+                                showDevWarning = true
+                            } else {
+                                showMenu = false
+                                showCreditsDialog = true
+                            }
                         }
                     )
                     DropdownMenuItem(
                         text = { Text("Mode Tampilan", color = MaterialTheme.colorScheme.onSurface) },
                         onClick = {
-                            showMenu = false
-                            selectedTheme = themeMode
-                            showThemeDialog = true
+                            if (context.isDevModeEnabled()) {
+                                showMenu = false
+                                showDevWarning = true
+                            } else {
+                                showMenu = false
+                                selectedTheme = themeMode
+                                showThemeDialog = true
+                            }
                         }
                     )
                 }
@@ -161,7 +196,13 @@ fun MainScreen(
             items(CategoryProvider.categories) { category ->
                 CategoryCard(
                     category = category,
-                    onClick = { onCategoryClick(category.id) }
+                    onClick = {
+                        if (context.isDevModeEnabled()) {
+                            showDevWarning = true
+                        } else {
+                            onCategoryClick(category.id)
+                        }
+                    }
                 )
             }
         }
@@ -501,6 +542,32 @@ private fun CreditsDialog(onDismiss: () -> Unit) {
                     textAlign = TextAlign.Center
                 )
             }
+        }
+    )
+}
+
+@Composable
+private fun DevWarningDialog(onExit: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onExit) {
+                Text("Keluar", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Kembali", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            }
+        },
+        icon = {
+            Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+        },
+        title = {
+            Text("Mode Pengembang Terdeteksi", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Text("Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda.")
         }
     )
 }

@@ -1,5 +1,10 @@
 package com.infrabwx.app.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
@@ -35,14 +40,21 @@ fun NavGraph(
     navController: NavHostController,
     hasAcceptedTerms: Boolean,
     themeMode: String,
-    preferences: AppPreferences
+    preferences: AppPreferences,
+    isDark: Boolean = false
 ) {
     val scope = rememberCoroutineScope()
+    val animDuration = 300
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route
     ) {
-        composable(Screen.Splash.route) {
+        composable(
+            route = Screen.Splash.route,
+            enterTransition = { fadeIn(animationSpec = tween(animDuration)) },
+            exitTransition = { fadeOut(animationSpec = tween(animDuration)) }
+        ) {
             SplashScreen(
                 onSplashComplete = {
                     val destination = if (hasAcceptedTerms) {
@@ -53,11 +65,18 @@ fun NavGraph(
                     navController.navigate(destination) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
-                }
+                },
+                isDark = isDark
             )
         }
 
-        composable(Screen.Permissions.route) {
+        composable(
+            route = Screen.Permissions.route,
+            enterTransition = { slideInHorizontally { it } + fadeIn(animationSpec = tween(animDuration)) },
+            exitTransition = { slideOutHorizontally { -it } + fadeOut(animationSpec = tween(animDuration)) },
+            popEnterTransition = { slideInHorizontally { -it } + fadeIn(animationSpec = tween(animDuration)) },
+            popExitTransition = { slideOutHorizontally { it } + fadeOut(animationSpec = tween(animDuration)) }
+        ) {
             PermissionsScreen(
                 onPermissionsGranted = {
                     navController.navigate(Screen.Terms.route) {
@@ -73,7 +92,13 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Terms.route) {
+        composable(
+            route = Screen.Terms.route,
+            enterTransition = { slideInHorizontally { it } + fadeIn(animationSpec = tween(animDuration)) },
+            exitTransition = { slideOutHorizontally { -it } + fadeOut(animationSpec = tween(animDuration)) },
+            popEnterTransition = { slideInHorizontally { -it } + fadeIn(animationSpec = tween(animDuration)) },
+            popExitTransition = { slideOutHorizontally { it } + fadeOut(animationSpec = tween(animDuration)) }
+        ) {
             val app = navController.context.applicationContext as InfraBwxApp
             TermsScreen(
                 onAccepted = {
@@ -87,7 +112,11 @@ fun NavGraph(
             )
         }
 
-        composable(Screen.Main.route) {
+        composable(
+            route = Screen.Main.route,
+            enterTransition = { fadeIn(animationSpec = tween(animDuration)) },
+            exitTransition = { fadeOut(animationSpec = tween(animDuration)) }
+        ) {
             MainScreen(
                 onCategoryClick = { categoryId ->
                     navController.navigate(Screen.Category.createRoute(categoryId))
@@ -99,7 +128,11 @@ fun NavGraph(
 
         composable(
             route = Screen.Category.route,
-            arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
+            arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+            enterTransition = { slideInHorizontally { it } + fadeIn(animationSpec = tween(animDuration)) },
+            exitTransition = { slideOutHorizontally { -it } + fadeOut(animationSpec = tween(animDuration)) },
+            popEnterTransition = { slideInHorizontally { -it } + fadeIn(animationSpec = tween(animDuration)) },
+            popExitTransition = { slideOutHorizontally { it } + fadeOut(animationSpec = tween(animDuration)) }
         ) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getString("categoryId") ?: return@composable
             CategoryScreen(
@@ -113,7 +146,11 @@ fun NavGraph(
 
         composable(
             route = Screen.Camera.route,
-            arguments = listOf(navArgument("categoryId") { type = NavType.StringType })
+            arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+            enterTransition = { slideInHorizontally { it } + fadeIn(animationSpec = tween(animDuration)) },
+            exitTransition = { slideOutHorizontally { -it } + fadeOut(animationSpec = tween(animDuration)) },
+            popEnterTransition = { slideInHorizontally { -it } + fadeIn(animationSpec = tween(animDuration)) },
+            popExitTransition = { slideOutHorizontally { it } + fadeOut(animationSpec = tween(animDuration)) }
         ) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getString("categoryId") ?: return@composable
             CameraScreen(

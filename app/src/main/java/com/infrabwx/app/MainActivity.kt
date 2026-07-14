@@ -64,7 +64,8 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             hasAcceptedTerms = termsAccepted,
                             themeMode = themeMode,
-                            preferences = app.preferences
+                            preferences = app.preferences,
+                            isDark = isDark
                         )
                     } else {
                         Box(

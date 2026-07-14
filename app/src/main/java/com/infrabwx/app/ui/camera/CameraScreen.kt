@@ -1,5 +1,6 @@
 package com.infrabwx.app.ui.camera
 
+import android.app.Activity
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import androidx.camera.core.ImageCapture
@@ -68,6 +69,7 @@ import com.infrabwx.app.ui.theme.PrimaryBlue
 import com.infrabwx.app.ui.theme.PrimaryGreen
 import com.infrabwx.app.ui.theme.TextSecondary
 import com.infrabwx.app.util.ImageUtils
+import com.infrabwx.app.util.isDevModeEnabled
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,8 +84,18 @@ fun CameraScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val state by viewModel.state.collectAsState()
     val category = CategoryProvider.getCategory(categoryId)
+    var showDevWarning by remember { mutableStateOf(false) }
 
     var controllerRef by remember { mutableStateOf<LifecycleCameraController?>(null) }
+
+    if (showDevWarning) {
+        DevWarningDialog(
+            onExit = {
+                (context as? Activity)?.finishAffinity()
+            },
+            onDismiss = { showDevWarning = false }
+        )
+    }
 
     Column(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         TopAppBar(
@@ -96,8 +108,12 @@ fun CameraScreen(
             },
             navigationIcon = {
                 IconButton(onClick = {
-                    viewModel.resetCapture()
-                    onBack()
+                    if (context.isDevModeEnabled()) {
+                        showDevWarning = true
+                    } else {
+                        viewModel.resetCapture()
+                        onBack()
+                    }
                 }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -256,6 +272,10 @@ fun CameraScreen(
             canSubmit = state.isInBanyuwangi && state.latitude != 0.0,
             isSubmitting = state.isSubmitting,
             onCapture = {
+                if (context.isDevModeEnabled()) {
+                    showDevWarning = true
+                    return@BottomBar
+                }
                 val ctrl = controllerRef ?: return@BottomBar
                 val file = File(context.cacheDir, "capture_${System.currentTimeMillis()}.jpg")
                 val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
@@ -277,8 +297,20 @@ fun CameraScreen(
                     }
                 )
             },
-            onRetake = { viewModel.resetCapture() },
-            onSubmit = { viewModel.submitReport(categoryId) }
+            onRetake = {
+                if (context.isDevModeEnabled()) {
+                    showDevWarning = true
+                } else {
+                    viewModel.resetCapture()
+                }
+            },
+            onSubmit = {
+                if (context.isDevModeEnabled()) {
+                    showDevWarning = true
+                } else {
+                    viewModel.submitReport(categoryId)
+                }
+            }
         )
     }
 }
@@ -363,6 +395,32 @@ private fun BottomBar(
             }
         }
     }
+}
+
+@Composable
+private fun DevWarningDialog(onExit: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onExit) {
+                Text("Keluar", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Kembali", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            }
+        },
+        icon = {
+            Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+        },
+        title = {
+            Text("Mode Pengembang Terdeteksi", fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Text("Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda.")
+        }
+    )
 }
 
 private fun rotateBitmapIfNeeded(bitmap: android.graphics.Bitmap, filePath: String): android.graphics.Bitmap {
