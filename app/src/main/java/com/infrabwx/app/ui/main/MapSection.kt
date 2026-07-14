@@ -118,21 +118,31 @@ fun MapSection(
         LaunchedEffect(locations) {
             mapView.overlays.clear()
             val reds = locations.filter { it.status != "green" }
-            val greens = locations.filter { it.status == "green" }
+            var greens = locations.filter { it.status == "green" }.toMutableList()
 
             val clusters = buildClusters(reds, CLUSTER_RADIUS_METERS)
+
             for (cluster in clusters) {
-                val color = AndroidColor.parseColor("#E53935")
+                val clusterPoint = GeoPoint(cluster.centroid.latitude, cluster.centroid.longitude)
+                val nearbyGreens = greens.filter { g ->
+                    GeoPoint(g.latitude, g.longitude).distanceToAsDouble(clusterPoint) <= cluster.radiusMeters + CLUSTER_RADIUS_METERS
+                }
+                greens.removeAll(nearbyGreens)
+                val allLocs = cluster.locations + nearbyGreens
                 val nonGreenCount = cluster.locations.size
 
-                if (cluster.locations.size == 1) {
+                val displayCluster = cluster.copy(locations = allLocs)
+
+                val color = AndroidColor.parseColor("#E53935")
+
+                if (cluster.locations.size == 1 && nearbyGreens.isEmpty()) {
                     val marker = Marker(mapView).apply {
                         position = cluster.centroid
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                         icon = createDot(color)
                         setInfoWindow(null)
                         setOnMarkerClickListener { _, _ ->
-                            scope.launch { selectedCluster = cluster }
+                            scope.launch { selectedCluster = displayCluster }
                             true
                         }
                     }
@@ -152,7 +162,7 @@ fun MapSection(
                         icon = createClusterDot(nonGreenCount)
                         setInfoWindow(null)
                         setOnMarkerClickListener { _, _ ->
-                            scope.launch { selectedCluster = cluster }
+                            scope.launch { selectedCluster = displayCluster }
                             true
                         }
                     }
