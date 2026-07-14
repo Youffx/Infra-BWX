@@ -86,7 +86,17 @@ fun CameraScreen(
     val category = CategoryProvider.getCategory(categoryId)
     var showDevWarning by remember { mutableStateOf(false) }
 
-    var controllerRef by remember { mutableStateOf<LifecycleCameraController?>(null) }
+    val cameraController = remember {
+        LifecycleCameraController(context.applicationContext).apply {
+            bindToLifecycle(lifecycleOwner)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraController.unbind()
+        }
+    }
 
     if (showDevWarning) {
         DevWarningDialog(
@@ -134,13 +144,9 @@ fun CameraScreen(
             if (!state.isCaptured) {
                 AndroidView(
                     factory = { ctx ->
-                        val previewView = PreviewView(ctx)
-                        val controller = LifecycleCameraController(ctx)
-
-                        controller.bindToLifecycle(lifecycleOwner)
-                        previewView.controller = controller
-                        controllerRef = controller
-                        previewView
+                        PreviewView(ctx).apply {
+                            controller = cameraController
+                        }
                     },
                     modifier = Modifier.fillMaxSize()
                 )
@@ -271,15 +277,14 @@ fun CameraScreen(
             isLocationLoading = state.isLocationLoading,
             canSubmit = state.isInBanyuwangi && state.latitude != 0.0,
             isSubmitting = state.isSubmitting,
-            onCapture = {
+                    onCapture = {
                 if (context.isDevModeEnabled()) {
                     showDevWarning = true
                     return@BottomBar
                 }
-                val ctrl = controllerRef ?: return@BottomBar
                 val file = File(context.cacheDir, "capture_${System.currentTimeMillis()}.jpg")
                 val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
-                ctrl.takePicture(
+                cameraController.takePicture(
                     outputOptions,
                     context.mainExecutor,
                     object : ImageCapture.OnImageSavedCallback {

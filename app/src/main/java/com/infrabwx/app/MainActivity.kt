@@ -41,9 +41,7 @@ class MainActivity : ComponentActivity() {
             }
 
             InfraBWXTheme(darkTheme = isDark) {
-                val colorScheme = MaterialTheme.colorScheme
                 SideEffect {
-                    window.statusBarColor = colorScheme.background.toArgb()
                     WindowCompat.getInsetsController(window, window.decorView)
                         .isAppearanceLightStatusBars = !isDark
                 }
