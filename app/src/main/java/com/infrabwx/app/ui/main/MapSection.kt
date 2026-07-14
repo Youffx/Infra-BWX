@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.SatelliteAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -280,8 +281,8 @@ private fun ClusterLocationDialog(
     context: Context
 ) {
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val titleColor = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface
-    val bodyColor = if (isDark) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+    val textColor = if (isDark) Color.White else Color(0xFF1C1B1F)
+    val bodyColor = textColor
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -290,7 +291,7 @@ private fun ClusterLocationDialog(
                 text = if (cluster.locations.size == 1) cluster.locations[0].kecamatan
                        else "${cluster.locations.size} Laporan di Area Ini",
                 fontWeight = FontWeight.Bold,
-                color = titleColor
+                color = textColor
             )
         },
         text = {
@@ -328,28 +329,23 @@ private fun ClusterLocationDialog(
                         Spacer(Modifier.height(2.dp))
                         Box(
                             modifier = Modifier
-                                .background(
-                                    Color(0xFF43A047).copy(alpha = 0.15f),
-                                    RoundedCornerShape(4.dp)
-                                )
+                                .background(Color(0xFF43A047), RoundedCornerShape(4.dp))
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
                                 text = "Sudah diperbaiki",
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (isDark) Color.White else Color(0xFF2E7D32)
+                                color = Color.White
                             )
                         }
                     }
                     Spacer(Modifier.height(4.dp))
-                    Button(
+                    TextButton(
                         onClick = { context.openInGoogleMaps(loc) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = PrimaryBlue,
-                            contentColor = Color.White
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = bodyColor
                         ),
-                        shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.align(Alignment.End)
                     ) {
                         Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
