@@ -24,6 +24,10 @@ function doGet(e) {
     return getRanking(category);
   }
 
+  if (action === "getLocations") {
+    return getLocations();
+  }
+
   return jsonResponse({ status: "error", message: "Invalid parameters" });
 }
 
@@ -89,6 +93,29 @@ function getRanking(category) {
   result.sort(function(a, b) { return b.jumlah - a.jumlah; });
 
   return jsonResponse({ status: "success", data: result });
+}
+
+function getLocations() {
+  var sheet = getOrCreateSheet(CONFIG.SHEET_NAME);
+  var data = sheet.getDataRange().getValues();
+
+  if (data.length <= 1) {
+    return jsonResponse({ status: "success", data: [] });
+  }
+
+  var rows = data.slice(1);
+  var locations = rows.map(function(row) {
+    return {
+      latitude: parseFloat(row[3]),
+      longitude: parseFloat(row[4]),
+      kecamatan: row[5],
+      category: row[2]
+    };
+  }).filter(function(loc) {
+    return !isNaN(loc.latitude) && !isNaN(loc.longitude);
+  });
+
+  return jsonResponse({ status: "success", data: locations });
 }
 
 function getOrCreateFolder(folderName) {

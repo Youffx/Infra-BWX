@@ -24,3 +24,15 @@ data class RankingResponse(
     @SerializedName("status") val status: String,
     @SerializedName("data") val data: List<RankingItem>
 )
+
+data class ReportLocationItem(
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double,
+    @SerializedName("kecamatan") val kecamatan: String,
+    @SerializedName("category") val category: String
+)
+
+data class ReportLocationsResponse(
+    @SerializedName("status") val status: String,
+    @SerializedName("data") val data: List<ReportLocationItem>
+)

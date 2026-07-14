@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.coil.compose)
     implementation(libs.play.services.location)
+    implementation(libs.osmdroid)
     implementation("androidx.exifinterface:exifinterface:1.3.7")
     debugImplementation(libs.compose.ui.tooling)
 }

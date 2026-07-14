@@ -2,6 +2,8 @@ package com.infrabwx.app.data.remote
 
 import com.infrabwx.app.data.model.RankingItem
 import com.infrabwx.app.data.model.RankingResponse
+import com.infrabwx.app.data.model.ReportLocationItem
+import com.infrabwx.app.data.model.ReportLocationsResponse
 import com.infrabwx.app.data.model.ReportRequest
 import com.infrabwx.app.data.model.ReportResponse
 
@@ -38,6 +40,19 @@ class AppsScriptRepository {
     suspend fun getRanking(category: String): Result<List<RankingItem>> {
         return try {
             val response = api.getRanking(category = category)
+            if (response.status == "success") {
+                Result.success(response.data)
+            } else {
+                Result.failure(Exception(response.status))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getReportLocations(): Result<List<ReportLocationItem>> {
+        return try {
+            val response = api.getReportLocations()
             if (response.status == "success") {
                 Result.success(response.data)
             } else {

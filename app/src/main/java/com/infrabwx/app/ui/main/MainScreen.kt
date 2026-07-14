@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
@@ -41,6 +43,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
@@ -97,6 +100,7 @@ fun MainScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
     var selectedTheme by remember { mutableStateOf(themeMode) }
     var showDevWarning by remember { mutableStateOf(false) }
+    var isMapFullScreen by remember { mutableStateOf(false) }
 
     if (showDevWarning) {
         DevWarningDialog(
@@ -107,103 +111,148 @@ fun MainScreen(
         )
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Infra BWX",
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue
-                )
-            },
-            actions = {
-                IconButton(onClick = {
-                    if (context.isDevModeEnabled()) {
-                        showDevWarning = true
-                    } else {
-                        showMenu = true
-                    }
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("Ketentuan Hukum", color = MaterialTheme.colorScheme.onSurface) },
-                        onClick = {
-                            if (context.isDevModeEnabled()) {
-                                showMenu = false
-                                showDevWarning = true
-                            } else {
-                                showMenu = false
-                                showTermsDialog = true
-                            }
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Developer", color = MaterialTheme.colorScheme.onSurface) },
-                        onClick = {
-                            if (context.isDevModeEnabled()) {
-                                showMenu = false
-                                showDevWarning = true
-                            } else {
-                                showMenu = false
-                                showCreditsDialog = true
-                            }
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("Mode Tampilan", color = MaterialTheme.colorScheme.onSurface) },
-                        onClick = {
-                            if (context.isDevModeEnabled()) {
-                                showMenu = false
-                                showDevWarning = true
-                            } else {
-                                showMenu = false
-                                selectedTheme = themeMode
-                                showThemeDialog = true
-                            }
-                        }
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
+    if (isMapFullScreen) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            MapSection(
+                modifier = Modifier.fillMaxSize(),
+                isFullScreen = true,
+                onToggleFullScreen = { isMapFullScreen = false }
             )
-        )
-
-        Text(
-            text = "Pilih Kategori Laporan",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            IconButton(
+                onClick = { isMapFullScreen = false },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp)
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), CircleShape),
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Kembali"
+                )
+            }
+        }
+    } else {
+        Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            items(CategoryProvider.categories) { category ->
-                CategoryCard(
-                    category = category,
-                    onClick = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Infra BWX",
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryBlue
+                    )
+                },
+                actions = {
+                    IconButton(onClick = {
                         if (context.isDevModeEnabled()) {
                             showDevWarning = true
                         } else {
-                            onCategoryClick(category.id)
+                            showMenu = true
                         }
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Menu",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
                     }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Ketentuan Hukum", color = MaterialTheme.colorScheme.onSurface) },
+                            onClick = {
+                                if (context.isDevModeEnabled()) {
+                                    showMenu = false
+                                    showDevWarning = true
+                                } else {
+                                    showMenu = false
+                                    showTermsDialog = true
+                                }
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Developer", color = MaterialTheme.colorScheme.onSurface) },
+                            onClick = {
+                                if (context.isDevModeEnabled()) {
+                                    showMenu = false
+                                    showDevWarning = true
+                                } else {
+                                    showMenu = false
+                                    showCreditsDialog = true
+                                }
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Mode Tampilan", color = MaterialTheme.colorScheme.onSurface) },
+                            onClick = {
+                                if (context.isDevModeEnabled()) {
+                                    showMenu = false
+                                    showDevWarning = true
+                                } else {
+                                    showMenu = false
+                                    selectedTheme = themeMode
+                                    showThemeDialog = true
+                                }
+                            }
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
+            )
+
+            Text(
+                text = "Pilih Kategori Laporan",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                items(CategoryProvider.categories) { category ->
+                    CategoryCard(
+                        category = category,
+                        onClick = {
+                            if (context.isDevModeEnabled()) {
+                                showDevWarning = true
+                            } else {
+                                onCategoryClick(category.id)
+                            }
+                        }
+                    )
+                }
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Box(modifier = Modifier.height(220.dp)) {
+                    MapSection(
+                        modifier = Modifier.fillMaxSize(),
+                        isFullScreen = false,
+                        onToggleFullScreen = { isMapFullScreen = true }
+                    )
+                }
             }
         }
     }
