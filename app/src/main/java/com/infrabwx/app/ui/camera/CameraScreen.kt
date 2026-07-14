@@ -64,10 +64,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.infrabwx.app.data.model.CategoryProvider
-import com.infrabwx.app.ui.theme.DarkGreen
 import com.infrabwx.app.ui.theme.PrimaryBlue
 import com.infrabwx.app.ui.theme.PrimaryGreen
-import com.infrabwx.app.ui.theme.TextSecondary
 import com.infrabwx.app.util.ImageUtils
 import com.infrabwx.app.util.isDevModeEnabled
 import java.io.File
@@ -187,7 +185,7 @@ fun CameraScreen(
                         ) {
                             Card(
                                 modifier = Modifier.padding(32.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
                                 Column(
@@ -197,7 +195,7 @@ fun CameraScreen(
                                     Icon(
                                         imageVector = Icons.Default.Error,
                                         contentDescription = null,
-                                        tint = Color(0xFFE53935),
+                                        tint = MaterialTheme.colorScheme.error,
                                         modifier = Modifier.size(48.dp)
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -205,14 +203,15 @@ fun CameraScreen(
                                         text = "Lokasi Tidak Didukung",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFE53935)
+                                        color = MaterialTheme.colorScheme.error
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = "Anda tidak sedang di wilayah Kabupaten Banyuwangi. " +
                                                 "Laporan hanya dapat dikirim dari wilayah Banyuwangi.",
                                         style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Center
+                                        textAlign = TextAlign.Center,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }
@@ -238,7 +237,7 @@ fun CameraScreen(
         if (state.submitSuccess) {
             AlertDialog(
                 onDismissRequest = { viewModel.clearError(); onSubmitted() },
-                title = { Text("Berhasil", fontWeight = FontWeight.Bold, color = DarkGreen) },
+                title = { Text("Berhasil", fontWeight = FontWeight.Bold, color = PrimaryGreen) },
                 text = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
@@ -262,7 +261,7 @@ fun CameraScreen(
         state.submitError?.let { error ->
             AlertDialog(
                 onDismissRequest = { viewModel.clearError() },
-                title = { Text("Gagal", fontWeight = FontWeight.Bold, color = Color(0xFFE53935)) },
+                title = { Text("Gagal", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) },
                 text = { Text(error) },
                 confirmButton = {
                     TextButton(onClick = { viewModel.clearError() }) {
@@ -364,7 +363,7 @@ private fun BottomBar(
                     enabled = !isSubmitting,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
-                        contentColor = TextSecondary
+                        contentColor = Color.Black
                     ),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.weight(1f).padding(end = 8.dp)
