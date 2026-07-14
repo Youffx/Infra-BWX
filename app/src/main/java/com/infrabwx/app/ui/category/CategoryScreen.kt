@@ -363,8 +363,10 @@ private fun TakedownContent() {
 
                 Text(
                     text = "Takedown Laporan",
+                    modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -372,7 +374,9 @@ private fun TakedownContent() {
 
                 Text(
                     text = "Penghapusan Data Laporan",
+                    modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
