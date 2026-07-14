@@ -122,8 +122,8 @@ fun MapSection(
 
         Row(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 10.dp),
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             IconButton(
