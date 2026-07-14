@@ -29,7 +29,9 @@ data class ReportLocationItem(
     @SerializedName("latitude") val latitude: Double,
     @SerializedName("longitude") val longitude: Double,
     @SerializedName("kecamatan") val kecamatan: String,
-    @SerializedName("category") val category: String
+    @SerializedName("category") val category: String,
+    @SerializedName("imageUrl") val imageUrl: String? = null,
+    @SerializedName("status") val status: String? = null
 )
 
 data class ReportLocationsResponse(

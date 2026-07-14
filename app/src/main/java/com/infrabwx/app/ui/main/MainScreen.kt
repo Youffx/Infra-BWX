@@ -3,6 +3,8 @@ package com.infrabwx.app.ui.main
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.view.View
+import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -113,6 +115,19 @@ fun MainScreen(
     }
 
     if (isMapFullScreen) {
+        val activity = LocalContext.current as? Activity
+        DisposableEffect(Unit) {
+            activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            activity?.window?.decorView?.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            )
+            onDispose {
+                activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+                activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+            }
+        }
         Box(modifier = Modifier.fillMaxSize()) {
             MapSection(
                 modifier = Modifier.fillMaxSize(),
@@ -123,7 +138,6 @@ fun MainScreen(
                 onClick = { isMapFullScreen = false },
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .statusBarsPadding()
                     .padding(8.dp)
                     .size(40.dp)
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), CircleShape),

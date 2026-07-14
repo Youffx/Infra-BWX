@@ -78,7 +78,7 @@ function getRanking(category) {
   }
 
   var rows = data.slice(1);
-  var filtered = rows.filter(function(row) { return row[2] === category; });
+  var filtered = rows.filter(function(row) { return row[2] === category && row[2] !== "green" && row[2] !== "black"; });
   var ranking = {};
 
   filtered.forEach(function(row) {
@@ -105,14 +105,19 @@ function getLocations() {
 
   var rows = data.slice(1);
   var locations = rows.map(function(row) {
-    return {
+    var cat = row[2];
+    if (cat === "black") return null;
+    var loc = {
       latitude: parseFloat(row[3]),
       longitude: parseFloat(row[4]),
       kecamatan: row[5],
-      category: row[2]
+      category: cat,
+      imageUrl: row[6] || ""
     };
+    if (cat === "green") loc.status = "green";
+    return loc;
   }).filter(function(loc) {
-    return !isNaN(loc.latitude) && !isNaN(loc.longitude);
+    return loc !== null && !isNaN(loc.latitude) && !isNaN(loc.longitude);
   });
 
   return jsonResponse({ status: "success", data: locations });

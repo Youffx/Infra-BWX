@@ -1,22 +1,38 @@
 package com.infrabwx.app.ui.main
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
+import android.view.MotionEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.SatelliteAlt
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -28,9 +44,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import coil.compose.AsyncImage
 import com.infrabwx.app.data.model.ReportLocationItem
 import com.infrabwx.app.data.remote.AppsScriptRepository
 import com.infrabwx.app.ui.theme.PrimaryBlue
@@ -54,6 +73,7 @@ fun MapSection(
     val repository = remember { AppsScriptRepository() }
     var locations by remember { mutableStateOf<List<ReportLocationItem>>(emptyList()) }
     var isSatellite by remember { mutableStateOf(false) }
+    var selectedLocation by remember { mutableStateOf<ReportLocationItem?>(null) }
 
     LaunchedEffect(Unit) {
         val result = repository.getReportLocations()
@@ -73,7 +93,9 @@ fun MapSection(
                 controller.setZoom(10.5)
                 controller.setCenter(GeoPoint(BANYUWANGI_LAT, BANYUWANGI_LNG))
                 setOnTouchListener { v, event ->
-                    v.parent.requestDisallowInterceptTouchEvent(true)
+                    if (event.action == MotionEvent.ACTION_DOWN) {
+                        v.parent.requestDisallowInterceptTouchEvent(true)
+                    }
                     false
                 }
             }
@@ -82,11 +104,17 @@ fun MapSection(
         LaunchedEffect(locations) {
             mapView.overlays.removeAll { it is Marker }
             for (loc in locations) {
+                val dot = if (loc.status == "green") createGreenDot() else createRedDot()
                 val marker = Marker(mapView).apply {
                     position = GeoPoint(loc.latitude, loc.longitude)
                     setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    icon = createRedDot()
+                    icon = dot
                     title = "${loc.kecamatan} - ${loc.category}"
+                    setInfoWindow(null)
+                    setOnMarkerClickListener { _, _ ->
+                        selectedLocation = loc
+                        true
+                    }
                 }
                 mapView.overlays.add(marker)
             }
@@ -164,6 +192,138 @@ fun MapSection(
             }
         }
     }
+
+    selectedLocation?.let { loc ->
+        if (isFullScreen) {
+            FullscreenLocationDialog(
+                location = loc,
+                onDismiss = { selectedLocation = null },
+                context = context
+            )
+        } else {
+            CompactLocationDialog(
+                location = loc,
+                onDismiss = { selectedLocation = null },
+                context = context
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactLocationDialog(
+    location: ReportLocationItem,
+    onDismiss: () -> Unit,
+    context: Context
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(location.kecamatan, fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column {
+                DetailRow("Kategori", location.category)
+                Spacer(Modifier.height(4.dp))
+                DetailRow("Latitude", location.latitude.toString())
+                Spacer(Modifier.height(4.dp))
+                DetailRow("Longitude", location.longitude.toString())
+            }
+        },
+        confirmButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = {
+                    context.openInGoogleMaps(location)
+                }) {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Buka di Google Maps")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Tutup")
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun FullscreenLocationDialog(
+    location: ReportLocationItem,
+    onDismiss: () -> Unit,
+    context: Context
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(location.kecamatan, fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                if (!location.imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = location.imageUrl,
+                        contentDescription = "Foto lokasi",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+                DetailRow("Kategori", location.category)
+                Spacer(Modifier.height(4.dp))
+                DetailRow("Latitude", location.latitude.toString())
+                Spacer(Modifier.height(4.dp))
+                DetailRow("Longitude", location.longitude.toString())
+                if (location.status == "green") {
+                    Spacer(Modifier.height(4.dp))
+                    DetailRow("Status", "Terverifikasi")
+                }
+            }
+        },
+        confirmButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = {
+                    context.openInGoogleMaps(location)
+                }) {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Buka di Google Maps")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Tutup")
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row {
+        Text(
+            text = "$label: ",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+    }
+}
+
+private fun Context.openInGoogleMaps(loc: ReportLocationItem) {
+    val uri = "geo:${loc.latitude},${loc.longitude}?q=${loc.latitude},${loc.longitude}(${Uri.encode(loc.kecamatan)})"
+    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
 }
 
 private fun createRedDot(): android.graphics.drawable.Drawable {
@@ -171,6 +331,16 @@ private fun createRedDot(): android.graphics.drawable.Drawable {
         shape = GradientDrawable.OVAL
         setSize(48, 48)
         setColor(android.graphics.Color.parseColor("#E53935"))
+        setStroke(4, android.graphics.Color.WHITE)
+        setBounds(0, 0, 48, 48)
+    }
+}
+
+private fun createGreenDot(): android.graphics.drawable.Drawable {
+    return GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setSize(48, 48)
+        setColor(android.graphics.Color.parseColor("#43A047"))
         setStroke(4, android.graphics.Color.WHITE)
         setBounds(0, 0, 48, 48)
     }
