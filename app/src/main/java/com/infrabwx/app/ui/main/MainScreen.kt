@@ -136,13 +136,16 @@ fun MainScreen(
     if (isMapFullScreen) {
         val activity = LocalContext.current as? Activity
         DisposableEffect(Unit) {
-            val window = activity?.window ?: return@DisposableEffect
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            val controller = WindowInsetsControllerCompat(window, window.decorView)
-            controller.hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
-            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            val window = activity?.window
+            val controller = window?.let {
+                WindowCompat.setDecorFitsSystemWindows(it, false)
+                WindowInsetsControllerCompat(it, it.decorView).apply {
+                    hide(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+                    systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                }
+            }
             onDispose {
-                controller.show(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
+                controller?.show(WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.navigationBars())
             }
         }
         Box(modifier = Modifier.fillMaxSize()) {
