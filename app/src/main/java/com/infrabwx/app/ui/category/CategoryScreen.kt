@@ -94,6 +94,7 @@ fun CategoryScreen(
             title = {
                 Text(
                     text = category?.name ?: "Kategori",
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryBlue
                 )
@@ -179,22 +180,22 @@ private fun DevWarningDialog(onExit: () -> Unit, onDismiss: () -> Unit) {
                 onClick = onExit,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-                Text("Keluar", color = MaterialTheme.colorScheme.onError)
+                Text("Keluar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onError)
             }
         },
         dismissButton = {
             androidx.compose.material3.TextButton(onClick = onDismiss) {
-                Text("Kembali", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                Text("Kembali", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
         },
         icon = {
             Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
         },
         title = {
-            Text("Mode Pengembang Terdeteksi", fontWeight = FontWeight.Bold)
+            Text("Mode Pengembang Terdeteksi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         },
         text = {
-            Text("Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda.")
+            Text("Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda.", style = MaterialTheme.typography.bodyMedium)
         }
     )
 }
@@ -303,6 +304,7 @@ private fun RankingCard(index: Int, item: RankingItem, categoryColor: Color) {
             ) {
                 Text(
                     text = "$index",
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (index <= 3) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
@@ -366,7 +368,6 @@ private fun TakedownContent() {
                     modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
@@ -376,7 +377,6 @@ private fun TakedownContent() {
                     text = "Penghapusan Data Laporan",
                     modifier = Modifier.fillMaxWidth(),
                     style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }

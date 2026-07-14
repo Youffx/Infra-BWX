@@ -552,22 +552,22 @@ private fun DevWarningDialog(onExit: () -> Unit, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onExit) {
-                Text("Keluar", color = MaterialTheme.colorScheme.error)
+                Text("Keluar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Kembali", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                Text("Kembali", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
         },
         icon = {
             Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
         },
         title = {
-            Text("Mode Pengembang Terdeteksi", fontWeight = FontWeight.Bold)
+            Text("Mode Pengembang Terdeteksi", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         },
         text = {
-            Text("Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda.")
+            Text("Aplikasi ini tidak dapat berjalan ketika Mode Pengembang aktif. Silakan nonaktifkan Mode Pengembang di pengaturan perangkat Anda.", style = MaterialTheme.typography.bodyMedium)
         }
     )
 }
