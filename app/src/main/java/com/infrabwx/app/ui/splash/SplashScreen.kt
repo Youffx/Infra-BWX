@@ -68,7 +68,7 @@ fun SplashScreen(onSplashComplete: () -> Unit, isDark: Boolean) {
         ) {
             Image(
                 painter = painterResource(
-                    id = if (isDark) R.drawable.in_app_logo_dark else R.drawable.in_app_logo_light
+                    id = if (isDark) R.drawable.in_app_logo_light else R.drawable.in_app_logo_dark
                 ),
                 contentDescription = "App Logo",
                 modifier = Modifier.size(160.dp)
