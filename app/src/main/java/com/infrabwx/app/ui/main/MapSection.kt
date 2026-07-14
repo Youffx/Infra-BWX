@@ -280,9 +280,8 @@ private fun ClusterLocationDialog(
     onDismiss: () -> Unit,
     context: Context
 ) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val textColor = if (isDark) Color.White else Color.Black
-    val bodyColor = if (isDark) Color.White else Color.Black
+    val textColor = MaterialTheme.colorScheme.onSurface
+    val bodyColor = textColor
 
     AlertDialog(
         onDismissRequest = onDismiss,
