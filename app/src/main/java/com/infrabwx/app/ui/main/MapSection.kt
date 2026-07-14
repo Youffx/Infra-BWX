@@ -7,6 +7,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.view.MotionEvent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,7 +31,6 @@ import androidx.compose.material.icons.filled.SatelliteAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -281,8 +281,8 @@ private fun ClusterLocationDialog(
     context: Context
 ) {
     val isDark = androidx.compose.foundation.isSystemInDarkTheme()
-    val textColor = if (isDark) Color.White else Color(0xFF1C1B1F)
-    val bodyColor = textColor
+    val textColor = if (isDark) Color.White else Color.Black
+    val bodyColor = if (isDark) Color.White else Color.Black
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -341,16 +341,28 @@ private fun ClusterLocationDialog(
                         }
                     }
                     Spacer(Modifier.height(4.dp))
-                    TextButton(
-                        onClick = { context.openInGoogleMaps(loc) },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = bodyColor
-                        ),
-                        modifier = Modifier.align(Alignment.End)
+                    Box(
+                        modifier = Modifier
+                            .clickable { context.openInGoogleMaps(loc) }
+                            .background(Color(0xFF43A047), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .align(Alignment.End)
                     ) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text("Buka Gmaps")
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.LocationOn,
+                                contentDescription = null,
+                                Modifier.size(18.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                "Buka Gmaps",
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
             }
