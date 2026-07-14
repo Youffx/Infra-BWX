@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocationOn
@@ -43,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,6 +57,7 @@ import coil.compose.AsyncImage
 import com.infrabwx.app.data.model.ReportLocationItem
 import com.infrabwx.app.data.remote.AppsScriptRepository
 import com.infrabwx.app.ui.theme.PrimaryBlue
+import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.tileprovider.tilesource.XYTileSource
@@ -83,6 +84,7 @@ fun MapSection(
 ) {
     val context = LocalContext.current
     val repository = remember { AppsScriptRepository() }
+    val scope = rememberCoroutineScope()
     var locations by remember { mutableStateOf<List<ReportLocationItem>>(emptyList()) }
     var isSatellite by remember { mutableStateOf(false) }
     var selectedCluster by remember { mutableStateOf<ReportCluster?>(null) }
@@ -130,7 +132,7 @@ fun MapSection(
                         icon = createDot(color)
                         setInfoWindow(null)
                         setOnMarkerClickListener { _, _ ->
-                            selectedCluster = cluster
+                            scope.launch { selectedCluster = cluster }
                             true
                         }
                     }
@@ -150,7 +152,7 @@ fun MapSection(
                         icon = createClusterDot(nonGreenCount)
                         setInfoWindow(null)
                         setOnMarkerClickListener { _, _ ->
-                            selectedCluster = cluster
+                            scope.launch { selectedCluster = cluster }
                             true
                         }
                     }
@@ -166,11 +168,13 @@ fun MapSection(
                     icon = createDot(green)
                     setInfoWindow(null)
                     setOnMarkerClickListener { _, _ ->
-                        selectedCluster = ReportCluster(
-                            centroid = GeoPoint(loc.latitude, loc.longitude),
-                            locations = listOf(loc),
-                            radiusMeters = 0.0
-                        )
+                        scope.launch {
+                            selectedCluster = ReportCluster(
+                                centroid = GeoPoint(loc.latitude, loc.longitude),
+                                locations = listOf(loc),
+                                radiusMeters = 0.0
+                            )
+                        }
                         true
                     }
                 }
@@ -265,6 +269,10 @@ private fun ClusterLocationDialog(
     onDismiss: () -> Unit,
     context: Context
 ) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val titleColor = if (isDark) Color.White else MaterialTheme.colorScheme.onSurface
+    val bodyColor = if (isDark) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -272,7 +280,7 @@ private fun ClusterLocationDialog(
                 text = if (cluster.locations.size == 1) cluster.locations[0].kecamatan
                        else "${cluster.locations.size} Laporan di Area Ini",
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = titleColor
             )
         },
         text = {
@@ -299,28 +307,28 @@ private fun ClusterLocationDialog(
                         )
                         Spacer(Modifier.height(8.dp))
                     }
-                    DetailRow("Kategori", formatCategory(loc.category))
+                    DetailRow("Kategori", formatCategory(loc.category), bodyColor)
                     Spacer(Modifier.height(2.dp))
-                    DetailRow("Kecamatan", loc.kecamatan)
+                    DetailRow("Kecamatan", loc.kecamatan, bodyColor)
                     Spacer(Modifier.height(2.dp))
-                    DetailRow("Latitude", loc.latitude.toString())
+                    DetailRow("Latitude", loc.latitude.toString(), bodyColor)
                     Spacer(Modifier.height(2.dp))
-                    DetailRow("Longitude", loc.longitude.toString())
+                    DetailRow("Longitude", loc.longitude.toString(), bodyColor)
                     if (loc.status == "green") {
                         Spacer(Modifier.height(2.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    Color(0xFF43A047).copy(alpha = 0.15f),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
                             Text(
                                 text = "Sudah diperbaiki",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.tertiary
+                                color = if (isDark) Color.White else Color(0xFF2E7D32)
                             )
                         }
                     }
@@ -345,8 +353,8 @@ private fun ClusterLocationDialog(
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = Color(0xFFE53935),
+                    contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -357,16 +365,18 @@ private fun ClusterLocationDialog(
 }
 
 @Composable
-private fun DetailRow(label: String, value: String) {
+private fun DetailRow(label: String, value: String, color: Color) {
     Row {
         Text(
             text = "$label: ",
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            color = color
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = color
         )
     }
 }
@@ -447,9 +457,11 @@ private fun createClusterDot(count: Int): android.graphics.drawable.Drawable {
             canvas.drawText(count.toString(), bounds.exactCenterX(), y, paint)
         }
 
+        override fun getIntrinsicWidth() = 56
+        override fun getIntrinsicHeight() = 56
         override fun setAlpha(alpha: Int) {}
         override fun setColorFilter(colorFilter: android.graphics.ColorFilter?) {}
         @Deprecated("Deprecated in Java")
         override fun getOpacity(): Int = android.graphics.PixelFormat.OPAQUE
-    }
+    }.apply { setBounds(0, 0, 56, 56) }
 }
