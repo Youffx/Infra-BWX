@@ -117,6 +117,7 @@ fun MainScreen(
     if (isMapFullScreen) {
         val activity = LocalContext.current as? Activity
         DisposableEffect(Unit) {
+            val originalVisibility = activity?.window?.decorView?.systemUiVisibility ?: 0
             activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             activity?.window?.decorView?.systemUiVisibility = (
                 View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
@@ -125,7 +126,7 @@ fun MainScreen(
             )
             onDispose {
                 activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                activity?.window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE
+                activity?.window?.decorView?.systemUiVisibility = originalVisibility
             }
         }
         Box(modifier = Modifier.fillMaxSize()) {
