@@ -29,6 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        window.setBackgroundDrawableResource(android.R.color.transparent)
         setContent {
             val app = application as InfraBwxApp
             val themeMode by app.preferences.themeMode.collectAsState(initial = "auto")
